@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Celltech</title>
+    <!-- Iconos para las pantallas de marcas y tickets -->
+    <link rel="stylesheet" href="https://cloudflare.com">
+    <style>
+        /* ==========================================================================
+           ESTILOS GENERALES Y ESTRUCTURA DE PANTALLAS
+           ========================================================================== */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f4f4f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* Contenedor simulador de teléfono móvil */
+        .phone-wrapper {
+            width: 100%;
+            max-width: 340px;
+            height: 600px;
+            background-color: #f4f4f9;
+            border: 1px solid #dcdcdc;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Contenedor interno con scroll para las vistas que lo requieran */
+        .screen-content {
+            width: 100%;
+            height: 100%;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Ocultar pantallas por defecto */
+        .screen {
+            display: none;
+            width: 100%;
+            flex-direction: column;
+        }
+
+        /* Pantalla activa visible */
+        .screen.active {
+            display: flex;
+        }
+
+        /* Botón de regresar (Cuadro celeste superior izquierdo) */
+        .back-button {
+            width: 24px;
+            height: 24px;
+            background-color: #00b4ec;
+            cursor: pointer;
+            margin-bottom: 15px;
+            flex-shrink: 0;
+            transition: opacity 0.2s;
+        }
+        .back-button:hover {
+            opacity: 0.8;
+        }
+
+        /* Mensaje de error para el Login */
+        .error-message {
+            color: #ff3333;
+            font-size: 13px;
+            margin-top: 10px;
+            text-align: center;
+            display: none;
+        }
+
+        /* ==========================================================================
+           PANTALLA 1: LOGIN
+           ========================================================================== */
+        #screen-1 { align-items: center; justify-content: center; height: 100%; }
+        .logo-login { margin-bottom: 30px; text-align: center; }
+        .logo-login img { width: 180px; height: auto; object-fit: contain; }
+        .form-group { width: 100%; margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 14px; color: #333; margin-bottom: 5px; font-weight: 500; }
+        .form-group input { width: 100%; padding: 10px 12px; border: 1px solid #e0e0e0; border-radius: 4px; font-size: 14px; outline: none; }
+        .btn-continue { width: 100%; padding: 12px; background-color: #00b4ec; color: white; border: none; border-radius: 4px; font-size: 14px; font-weight: bold; cursor: pointer; margin-top: 15px; text-transform: uppercase; }
+
+        /* Credenciales de ayuda visibles en el login */
+        .credentials-box {
+            margin-top: 20px;
+            padding: 10px;
+            background: #eee;
+            border-radius: 4px;
+            font-size: 11px;
+            color: #666;
+            text-align: center;
+        }
+
+        /* ==========================================================================
+           PANTALLA 2: MENÚ PRINCIPAL (REPARACIÓN O VENTAS)
+           ========================================================================== */
+        .menu-container { display: flex; flex-direction: column; gap: 20px; }
+        .card { background-color: #ffffff; border-radius: 16px; padding: 25px 20px; display: flex; flex-direction: column; align-items: center; gap: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.03); }
+        .card.highlighted { border: 2px solid #00b4ec; }
+        .img-ellipse { width: 150px; height: 100px; border-radius: 50%; overflow: hidden; display: flex; justify-content: center; align-items: center; background: #e0e0e0; }
+        .img-ellipse img { width: 100%; height: 100%; object-fit: cover; }
+        .btn-menu { width: 90%; padding: 12px; background-color: #00b4ec; color: #000; border: none; border-radius: 8px; font-size: 13px; font-weight: bold; text-transform: uppercase; cursor: pointer; }
+
+        /* ==========================================================================
+           PANTALLA 3: MARCAS EN STOCK
+           ========================================================================== */
+        .brands-list { display: flex; flex-direction: column; gap: 12px; }
+        .brand-item { width: 100%; background: white; border: none; border-radius: 8px; padding: 16px; display: flex; justify-content: center; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.03); cursor: pointer; font-size: 20px; font-weight: bold; color: black; }
+        .b-samsung { font-family: 'Arial Black'; letter-spacing: 2px; }
+        .b-apple { display: flex; align-items: center; gap: 8px; }
+
+        /* ==========================================================================
+           PANTALLA 4: TELÉFONOS DISPONIBLES
+           ========================================================================== */
+        .models-list { display: flex; flex-direction: column; gap: 15px; }
+        .model-card { background: white; border-radius: 16px; padding: 15px; display: flex; flex-direction: column; align-items: center; gap: 10px; cursor: pointer; }
+        .model-card img { max-width: 130px; height: 85px; object-fit: contain; }
+        .model-card span { font-size: 17px; font-weight: 500; }
+        .model-card.empty { min-height: 140px; background: white; }
+
+        /* ==========================================================================
+           PANTALLA 5: DETALLES DEL TELÉFONO
+           ========================================================================== */
+        .product-header { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 15px; }
+        .prod-img-box { width: 100%; background: white; border-radius: 16px; padding: 10px; display: flex; justify-content: center; }
+        .prod-img-box img { max-width: 100%; height: auto; object-fit: contain; }
+        .specs-card { background: white; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
+        .price-tag { font-size: 22px; color: #40dfcc; font-weight: bold; }
+        .specs-text { font-size: 13.5px; line-height: 1.45; color: #000; display: flex; flex-direction: column; gap: 10px; }
+
+        /* ==========================================================================
+           PANTALLA 6: FORMULARIO REGISTRO REPARACIÓN
+           ========================================================================== */
+        .repair-header { display: flex; justify-content: center; margin-bottom: -40px; z-index: 5; }
+        .logo-circle { width: 90px; height: 90px; background: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; padding: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .logo-circle img { width: 100%; object-fit: contain; }
+        .form-grey-box { background-color: #dbdbdb; padding: 55px 15px 20px 15px; display: flex; flex-direction: column; gap: 15px; position: relative; }
+        .green-rect { position: absolute; top: 15px; right: 15px; width: 55px; height: 15px; background-color: #00be9b; }
+        
+        .field-group { display: flex; flex-direction: column; background: white; padding: 8px 12px; }
+        .field-group label { font-size: 11px; color: #666; font-weight: bold; margin-bottom: 2px; }
+        .input-editable { width: 100%; background: transparent; border: none; font-size: 14px; font-weight: bold; outline: none; padding: 5px 0; }
+        
+        .field-group.highlighted-group { border: 3px solid #007bff; }
+        .dark-line { width: 100%; height: 1px; background-color: #4a4a4a; margin-top: 2px; }
+
+        /* ==========================================================================
+           PANTALLA 7: COMPROBANTE / TICKET RECEPCIÓN
+           ========================================================================== */
+        .ticket-box { background: white; width: 100%; padding: 20px 12px; display: flex; flex-direction: column; align-items: center; text-align: center; }
+        .ticket-divider { font-size: 11px; color: #333; overflow: hidden; white-space: nowrap; margin: 2px 0; width: 100%; }
+        .ticket-id { font-size: 22px; font-weight: bold; margin: 4px 0; }
+        .ticket-title { font-size: 11px; font-weight: bold; text-transform: uppercase; margin-bottom: 12px; }
+        .ticket-p { font-size: 11.5px; line-height: 1.4; margin-bottom: 12px; text-align: left; width: 100%; }
+        .ticket-block { width: 100%; margin-top: 10px; border-top: 1px dashed #999; padding-top: 10px; text-align: left; }
+        .block-title { font-size: 11px; font-weight: bold; display: flex; justify-content: center; align-items: center; gap: 5px; margin-bottom: 5px; text-transform: uppercase; }
+        .block-title i { font-size: 12px; }
+        .block-title .fa-triangle-exclamation { color: #f39c12; }
+        .block-desc { font-size: 11px; line-height: 1.4; text-align: justify; }
+    </style>
+</head>
+<body>
+
+    <div class="phone-wrapper">
+        <div class="screen-content">
